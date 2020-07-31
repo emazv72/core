@@ -65,3 +65,4 @@ sddodbc/sddodbc.hbp
 sddpg/sddpg.hbp
 sddsqlt3/sddsqlt3.hbp            # uses: sqlite3 (locally hosted)
 xhb/xhb.hbp
+hbicu/hbicu.hbp

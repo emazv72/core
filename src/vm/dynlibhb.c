@@ -124,7 +124,7 @@ PHB_ITEM hb_libLoad( PHB_ITEM pLibName, PHB_ITEM pArgs )
          {
             void * hFileName;
 
-            hDynLib = ( void * ) LoadLibrary( HB_ITEMGETSTR( pLibName, &hFileName, NULL ) );
+            hDynLib = ( void * ) LoadLibraryEx( HB_ITEMGETSTR( pLibName, &hFileName, NULL ), NULL, LOAD_WITH_ALTERED_SEARCH_PATH );
 
             hb_strfree( hFileName );
          }

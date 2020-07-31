@@ -115,6 +115,7 @@ typedef struct _HB_CURL
    size_t          dl_pos;
 
    PHB_ITEM pProgressCallback;
+   PHB_ITEM pDebugCallback;
 
    PHB_HASH_TABLE pHash;
 
@@ -407,6 +408,30 @@ static int hb_curl_progress_callback( void * Cargo, double dltotal, double dlnow
    return 0;
 }
 
+#if LIBCURL_VERSION_NUM >= 0x070906
+static int hb_curl_debug_callback( CURL * curl, curl_infotype type, char * data, size_t size, void * Cargo )
+{
+   HB_SYMBOL_UNUSED( curl );
+
+   if( Cargo )
+   {
+      if( hb_vmRequestReenter() )
+      {
+         hb_vmPushEvalSym();
+         hb_vmPush( ( PHB_ITEM ) Cargo );
+         hb_vmPushInteger( ( int ) type );
+         hb_vmPushString( data, ( HB_SIZE ) size );
+         hb_vmSend( 2 );
+
+         hb_vmRequestRestore();
+      }
+   }
+
+   return 0;
+}
+#endif
+
+
 /* Helpers */
 /* ------- */
 
@@ -527,6 +552,12 @@ static void PHB_CURL_free( PHB_CURL hb_curl, HB_BOOL bFree )
       hb_curl->pProgressCallback = NULL;
    }
 
+   if( hb_curl->pDebugCallback )
+   {
+      hb_itemRelease( hb_curl->pDebugCallback );
+      hb_curl->pDebugCallback = NULL;
+   }
+
    if( hb_curl->pHash )
    {
       hb_hashTableKill( hb_curl->pHash );
@@ -587,6 +618,9 @@ static HB_GARBAGE_FUNC( PHB_CURL_mark )
 
       if( hb_curl->pProgressCallback )
          hb_gcMark( hb_curl->pProgressCallback );
+	 
+      if( hb_curl->pDebugCallback )
+         hb_gcMark( hb_curl->pDebugCallback );	 
    }
 }
 
@@ -1625,6 +1659,33 @@ HB_FUNC( CURL_EASY_SETOPT )
 
             /* Harbour specials */
 
+            case HB_CURLOPT_DEBUGBLOCK:
+            {
+#if LIBCURL_VERSION_NUM >= 0x070906
+               PHB_ITEM pCallback = hb_param( 3, HB_IT_EVALITEM );
+
+               if( hb_curl->pDebugCallback )
+               {
+                  curl_easy_setopt( hb_curl->curl, CURLOPT_DEBUGFUNCTION, NULL );
+                  curl_easy_setopt( hb_curl->curl, CURLOPT_DEBUGDATA, NULL );
+
+                  hb_itemRelease( hb_curl->pDebugCallback );
+                  hb_curl->pDebugCallback = NULL;
+               }
+
+               if( pCallback )
+               {
+                  hb_curl->pDebugCallback = hb_itemNew( pCallback );
+                  /* unlock the item so GC will not mark them as used */
+                  hb_gcUnlock( hb_curl->pDebugCallback );
+
+                  curl_easy_setopt( hb_curl->curl, CURLOPT_DEBUGFUNCTION, hb_curl_debug_callback );
+                  res = curl_easy_setopt( hb_curl->curl, CURLOPT_DEBUGDATA, hb_curl->pDebugCallback );
+               }
+#endif
+               break;
+            }
+			
             case HB_CURLOPT_PROGRESSBLOCK:
             {
                PHB_ITEM pProgressCallback = hb_param( 3, HB_IT_BLOCK | HB_IT_SYMBOL );
