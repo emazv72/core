@@ -9,9 +9,9 @@
 -w3 -es2
 
 -depkeyhead=openssl:openssl/ssl.h
--depcontrol=openssl:no{HB_BUILD_3RDEXT='no'}
--depcontrol=openssl:${HB_WITH_OPENSSL}
--depincpath=openssl:${HB_WITH_OPENSSL}
+#-depcontrol=openssl:no{HB_BUILD_3RDEXT='no'}
+#-depcontrol=openssl:${HB_WITH_OPENSSL}
+#-depincpath=openssl:${HB_WITH_OPENSSL}
 #-depincpath=openssl:/usr/local/opt/openssl/include
 #-depincpath=openssl:/usr/local/opt/libressl/include
 #-depincpath=openssl:/usr/include
@@ -19,6 +19,8 @@
 #-depincpath=openssl:/usr/local/ssl/include
 #-depincpath=openssl:/boot/common/include
 #-depincpath=openssl:/usr/pkg/include
+-depcontrol=openssl:local
+-depincpathlocal=openssl:${HB_WITH_OPENSSL}
 -depfinish=openssl
 
 {darwin}-cflag=-DOPENSSL_NO_SHA256

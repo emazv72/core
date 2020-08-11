@@ -265,7 +265,8 @@
 #define HB_CURLOPT_UL_NULL_SETUP              1010
 #define HB_CURLOPT_UL_FHANDLE_SETUP           1011
 #define HB_CURLOPT_DL_FHANDLE_SETUP           1012
-#define HB_CURLOPT_DEBUGBLOCK                 1013
+#define HB_CURLOPT_HTTPPOST_FORM              1013
+#define HB_CURLOPT_DEBUGBLOCK                 1014
 /* Compatibility ones. Please don't use these. */
 #define HB_CURLOPT_SETUPLOADFILE              HB_CURLOPT_UL_FILE_SETUP
 #define HB_CURLOPT_CLOSEUPLOADFILE            HB_CURLOPT_UL_FILE_CLOSE
@@ -556,5 +557,9 @@
 #define HB_CURLE_RTSP_SESSION_ERROR           86 /* mismatch of RTSP Session Identifiers */
 #define HB_CURLE_FTP_BAD_FILE_LIST            87 /* unable to parse FTP file list */
 #define HB_CURLE_CHUNK_FAILED                 88 /* chunk callback reported error */
+
+/* HB_CURLOPT_HTTPPOST_FORM type */
+#define HB_CURLOPT_HTTPPOST_FORM_CONTENT      1
+#define HB_CURLOPT_HTTPPOST_FORM_FILE         2
 
 #endif /* HBCURL_CH_ */

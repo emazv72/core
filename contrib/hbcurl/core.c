@@ -618,9 +618,9 @@ static HB_GARBAGE_FUNC( PHB_CURL_mark )
 
       if( hb_curl->pProgressCallback )
          hb_gcMark( hb_curl->pProgressCallback );
-	 
+
       if( hb_curl->pDebugCallback )
-         hb_gcMark( hb_curl->pDebugCallback );	 
+         hb_gcMark( hb_curl->pDebugCallback );
    }
 }
 
@@ -1066,6 +1066,58 @@ HB_FUNC( CURL_EASY_SETOPT )
                }
             }
             break;
+            case HB_CURLOPT_HTTPPOST_FORM:
+            {
+               PHB_ITEM pList = hb_param( 3, HB_IT_ARRAY );
+
+               if( pList )
+               {
+                  HB_SIZE ulPos, ulLen = hb_arrayLen( pList );
+
+                  for( ulPos = 0; ulPos < ulLen; ++ulPos )
+                  {
+                     PHB_ITEM pSubArray = hb_arrayGetItemPtr( pList, ulPos + 1 );
+
+                     if( pSubArray && HB_IS_ARRAY( pSubArray ) && hb_arrayLen( pSubArray ) >= 3 )
+                     {
+                        switch( hb_arrayGetNI( pSubArray, 1 ) )
+                        {
+                           case HB_CURLOPT_HTTPPOST_FORM_CONTENT:
+#if defined( CURLFORM_CONTENTLEN )
+                              curl_formadd( &hb_curl->pHTTPPOST_First,
+                                            &hb_curl->pHTTPPOST_Last,
+                                            CURLFORM_COPYNAME, hb_arrayGetCPtr( pSubArray, 2 ),
+                                            CURLFORM_NAMELENGTH, ( long ) hb_arrayGetCLen( pSubArray, 2 ),
+                                            CURLFORM_COPYCONTENTS, hb_arrayGetCPtr( pSubArray, 3 ),
+                                            CURLFORM_CONTENTLEN, ( curl_off_t ) hb_arrayGetCLen( pSubArray, 3 ),
+                                            CURLFORM_END );
+#else
+                              curl_formadd( &hb_curl->pHTTPPOST_First,
+                                            &hb_curl->pHTTPPOST_Last,
+                                            CURLFORM_COPYNAME, hb_arrayGetCPtr( pSubArray, 2 ),
+                                            CURLFORM_NAMELENGTH, ( long ) hb_arrayGetCLen( pSubArray, 2 ),
+                                            CURLFORM_COPYCONTENTS, hb_arrayGetCPtr( pSubArray, 3 ),
+                                            CURLFORM_CONTENTSLENGTH, ( long ) hb_arrayGetCLen( pSubArray, 3 ),
+                                            CURLFORM_END );
+#endif
+
+                              break;
+                           case HB_CURLOPT_HTTPPOST_FORM_FILE:
+                              curl_formadd( &hb_curl->pHTTPPOST_First,
+                                            &hb_curl->pHTTPPOST_Last,
+                                            CURLFORM_COPYNAME, hb_arrayGetCPtr( pSubArray, 2 ),
+                                            CURLFORM_NAMELENGTH, ( long ) hb_arrayGetCLen( pSubArray, 2 ),
+                                            CURLFORM_FILE, hb_curl_StrHash( hb_curl, hb_arrayGetCPtr( pSubArray, 3 ) ),
+                                            CURLFORM_END );
+                              break;
+                        }
+                     }
+                  }
+
+                  res = curl_easy_setopt( hb_curl->curl, CURLOPT_HTTPPOST, hb_curl->pHTTPPOST_First );
+               }
+               break;
+            }
             case HB_CURLOPT_REFERER:
                res = curl_easy_setopt( hb_curl->curl, CURLOPT_REFERER, hb_curl_StrHash( hb_curl, hb_parc( 3 ) ) );
                break;
@@ -1685,7 +1737,7 @@ HB_FUNC( CURL_EASY_SETOPT )
 #endif
                break;
             }
-			
+
             case HB_CURLOPT_PROGRESSBLOCK:
             {
                PHB_ITEM pProgressCallback = hb_param( 3, HB_IT_BLOCK | HB_IT_SYMBOL );
