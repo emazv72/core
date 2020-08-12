@@ -2228,9 +2228,12 @@ static void hb_gt_wvt_MouseEvent( PHB_GTWVT pWVT, UINT message, WPARAM wParam, L
       case WM_LBUTTONDOWN:
          if( pWVT->bBeginMarked || pWVT->bQuickEdit )
          {
-            pWVT->bBeingMarked      = HB_TRUE;
             pWVT->bHasSelection     = HB_FALSE;
             pWVT->bSelectionUpdated = HB_FALSE;
+
+            RedrawWindow( pWVT->hWnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW );
+			
+            pWVT->bBeingMarked      = HB_TRUE;
 
             pWVT->sRectNew.left   = xy.x;
             pWVT->sRectNew.top    = xy.y;
